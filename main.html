@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Attendly — Attendance Tracker</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      color: #fff;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.35), transparent 30%),
+        radial-gradient(circle at 90% 20%, rgba(236, 72, 153, 0.25), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.2), transparent 35%),
+        #080810;
+      overflow-x: hidden;
+    }
+
+    /* Background blobs */
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: -1;
+      opacity: 0.35;
+    }
+
+    body::before {
+      background: #8b5cf6;
+      top: -100px;
+      left: -100px;
+    }
+
+    body::after {
+      background: #ec4899;
+      bottom: -100px;
+      right: -100px;
+    }
+
+    .container {
+      width: min(1150px, 92%);
+      margin: auto;
+      padding: 35px 0 60px;
+    }
+
+    /* Header */
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 35px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      box-shadow: 0 10px 30px rgba(139, 92, 246, .35);
+    }
+
+    .logo h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .logo span {
+      color: #a78bfa;
+    }
+
+    .date {
+      color: #aaa;
+      font-size: 13px;
+      padding: 10px 15px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.04);
+      border-radius: 30px;
+      backdrop-filter: blur(15px);
+    }
+
+    /* Hero */
+
+    .hero {
+      margin-bottom: 30px;
+    }
+
+    .hero h2 {
+      font-size: clamp(32px, 6vw, 60px);
+      line-height: 1;
+      letter-spacing: -3px;
+      margin-bottom: 12px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(
+        90deg,
+        #a78bfa,
+        #f472b6,
+        #60a5fa
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      color: #999;
+      font-size: 15px;
+    }
+
+    /* Stats */
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.055);
+      backdrop-filter: blur(20px);
+      transition: .3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(167,139,250,.35);
+    }
+
+    .stat-label {
+      color: #888;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .purple {
+      color: #a78bfa;
+    }
+
+    .pink {
+      color: #f472b6;
+    }
+
+    .blue {
+      color: #60a5fa;
+    }
+
+    /* Add Student */
+
+    .add-box {
+      display: flex;
+      gap: 10px;
+      padding: 8px;
+      margin-bottom: 25px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      backdrop-filter: blur(20px);
+    }
+
+    .add-box input {
+      flex: 1;
+      border: none;
+      outline: none;
+      color: white;
+      background: transparent;
+      padding: 14px;
+      font-size: 14px;
+    }
+
+    .add-box input::placeholder {
+      color: #777;
+    }
+
+    .add-btn {
+      border: none;
+      cursor: pointer;
+      color: white;
+      font-weight: 700;
+      padding: 13px 22px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      transition: .25s;
+      box-shadow: 0 8px 25px rgba(139,92,246,.25);
+    }
+
+    .add-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 12px 35px rgba(236,72,153,.3);
+    }
+
+    /* Table */
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.045);
+      backdrop-filter: blur(20px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    th {
+      text-align: left;
+      padding: 18px;
+      color: #777;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    td {
+      padding: 17px 18px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      font-size: 14px;
+    }
+
+    tr {
+      transition: .25s;
+    }
+
+    tbody tr:hover {
+      background: rgba(255,255,255,.035);
+    }
+
+    .student {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+    }
+
+    .count {
+      font-weight: 700;
+    }
+
+    /* Percentage */
+
+    .percentage-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .progress {
+      width: 80px;
+      height: 6px;
+      background: #24242f;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #8b5cf6, #ec4899);
+    }
+
+    .percentage {
+      font-weight: 700;
+      min-width: 45px;
+    }
+
+    .good {
+      color: #4ade80;
+    }
+
+    .warning {
+      color: #facc15;
+    }
+
+    .bad {
+      color: #fb7185;
+    }
+
+    /* Action Buttons */
+
+    .actions {
+      display: flex;
+      gap: 7px;
+    }
+
+    .action-btn {
+      border: none;
+      cursor: pointer;
+      padding: 8px 11px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: .2s;
+    }
+
+    .present {
+      color: #4ade80;
+      background: rgba(74,222,128,.1);
+    }
+
+    .present:hover {
+      background: rgba(74,222,128,.2);
+      transform: translateY(-2px);
+    }
+
+    .absent {
+      color: #fb7185;
+      background: rgba(251,113,133,.1);
+    }
+
+    .absent:hover {
+      background: rgba(251,113,133,.2);
+      transform: translateY(-2px);
+    }
+
+    .delete {
+      color: #aaa;
+      background: rgba(255,255,255,.06);
+    }
+
+    .delete:hover {
+      color: white;
+      background: rgba(255,255,255,.12);
+    }
+
+    /* Empty */
+
+    .empty {
+      padding: 60px 20px;
+      text-align: center;
+      color: #777;
+    }
+
+    .empty-icon {
+      font-size: 45px;
+      margin-bottom: 12px;
+    }
+
+    .empty h3 {
+      color: #ddd;
+      margin-bottom: 7px;
+    }
+
+    /* Mobile */
+
+    @media(max-width: 700px) {
+
+      .container {
+        padding-top: 22px;
+      }
+
+      header {
+        margin-bottom: 25px;
+      }
+
+      .date {
+        display: none;
+      }
+
+      .hero h2 {
+        letter-spacing: -2px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 17px;
+      }
+
+      .add-box {
+        flex-direction: column;
+        padding: 8px;
+      }
+
+      .add-btn {
+        width: 100%;
+      }
+    }
+
+    /* Toast */
+
+    .toast {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translate(-50%, 100px);
+      padding: 13px 20px;
+      border-radius: 14px;
+      background: #181820;
+      border: 1px solid rgba(255,255,255,.1);
+      box-shadow: 0 15px 40px rgba(0,0,0,.4);
+      font-size: 13px;
+      opacity: 0;
+      transition: .4s;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- Header -->
+
+    <header>
+
+      <div class="logo">
+        <div class="logo-icon">✓</div>
+
+        <h1>Attend<span>ly</span></h1>
+      </div>
+
+      <div class="date" id="date"></div>
+
+    </header>
+
+
+    <!-- Hero -->
+
+    <section class="hero">
+
+      <h2>
+        Stay on top of your
+        <span class="gradient-text">attendance.</span>
+      </h2>
+
+      <p>
+        Simple. Clean. No boring spreadsheets. ✨
+      </p>
+
+    </section>
+
+
+    <!-- Stats -->
+
+    <section class="stats">
+
+      <div class="stat-card">
+        <div class="stat-label">TOTAL STUDENTS</div>
+        <div class="stat-value purple" id="totalStudents">
+          0
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">PRESENT TODAY</div>
+        <div class="stat-value pink" id="presentToday">
+          0
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">CLASS ATTENDANCE</div>
+        <div class="stat-value blue" id="overallAttendance">
+          0%
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- Add Student -->
+
+    <div class="add-box">
+
+      <input
+        type="text"
+        id="studentInput"
+        placeholder="Enter student's name..."
+        autocomplete="off"
+      >
+
+      <button class="add-btn" onclick="addStudent()">
+        + Add Student
+      </button>
+
+    </div>
+
+
+    <!-- Attendance Table -->
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Student</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Total</th>
+            <th>Attendance</th>
+            <th>Action</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="studentTable"></tbody>
+
+      </table>
+
+      <div class="empty" id="empty">
+
+        <div class="empty-icon">🪩</div>
+
+        <h3>No students yet</h3>
+
+        <p>Add your first student above.</p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="toast" id="toast"></div>
+
+
+  <script>
+
+    /* =========================
+       DATA
+    ========================= */
+
+    let students =
+      JSON.parse(localStorage.getItem("attendlyStudents")) || [];
+
+
+    /* =========================
+       DATE
+    ========================= */
+
+    function updateDate() {
+
+      const today = new Date();
+
+      const options = {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      };
+
+      document.getElementById("date").textContent =
+        today.toLocaleDateString("en-US", options);
+    }
+
+
+    /* =========================
+       ADD STUDENT
+    ========================= */
+
+    function addStudent() {
+
+      const input =
+        document.getElementById("studentInput");
+
+      const name = input.value.trim();
+
+      if (!name) {
+        showToast("Enter a student name first ✨");
+        return;
+      }
+
+      students.push({
+        name: name,
+        present: 0,
+        absent: 0
+      });
+
+      saveData();
+
+      input.value = "";
+
+      render();
+
+      showToast(`${name} added successfully 💜`);
+    }
+
+
+    /* =========================
+       ENTER KEY
+    ========================= */
+
+    document
+      .getElementById("studentInput")
+      .addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter") {
+          addStudent();
+        }
+
+      });
+
+
+    /* =========================
+       PRESENT
+    ========================= */
+
+    function markPresent(index) {
+
+      students[index].present++;
+
+      saveData();
+      render();
+
+      showToast("Marked present 💚");
+    }
+
+
+    /* =========================
+       ABSENT
+    ========================= */
+
+    function markAbsent(index) {
+
+      students[index].absent++;
+
+      saveData();
+      render();
+
+      showToast("Marked absent ❤️");
+    }
+
+
+    /* =========================
+       DELETE
+    ========================= */
+
+    function deleteStudent(index) {
+
+      const name = students[index].name;
+
+      if (!confirm(`Remove ${name}?`)) {
+        return;
+      }
+
+      students.splice(index, 1);
+
+      saveData();
+      render();
+
+      showToast("Student removed");
+    }
+
+
+    /* =========================
+       RENDER
+    ========================= */
+
+    function render() {
+
+      const table =
+        document.getElementById("studentTable");
+
+      const empty =
+        document.getElementById("empty");
+
+      table.innerHTML = "";
+
+      if (students.length === 0) {
+
+        empty.style.display = "block";
+
+      } else {
+
+        empty.style.display = "none";
+
+      }
+
+
+      let totalPresent = 0;
+      let totalClasses = 0;
+
+
+      students.forEach((student, index) => {
+
+        const total =
+          student.present + student.absent;
+
+        const percentage =
+          total === 0
+            ? 0
+            : ((student.present / total) * 100);
+
+
+        totalPresent += student.present;
+        totalClasses += total;
+
+
+        let percentageClass = "bad";
+
+        if (percentage >= 75) {
+          percentageClass = "good";
+        }
+        else if (percentage >= 50) {
+          percentageClass = "warning";
+        }
+
+
+        const firstLetter =
+          student.name.charAt(0).toUpperCase();
+
+
+        const row =
+          document.createElement("tr");
+
+
+        row.innerHTML = `
+
+          <td>
+
+            <div class="student">
+
+              <div class="avatar">
+                ${escapeHTML(firstLetter)}
+              </div>
+
+              ${escapeHTML(student.name)}
+
+            </div>
+
+          </td>
+
+
+          <td>
+            <span class="count good">
+              ${student.present}
+            </span>
+          </td>
+
+
+          <td>
+            <span class="count bad">
+              ${student.absent}
+            </span>
+          </td>
+
+
+          <td>
+            ${total}
+          </td>
+
+
+          <td>
+
+            <div class="percentage-wrapper">
+
+              <div class="progress">
+
+                <div
+                  class="progress-bar"
+                  style="width:${percentage}%">
+                </div>
+
+              </div>
+
+              <span class="percentage ${percentageClass}">
+                ${percentage.toFixed(0)}%
+              </span>
+
+            </div>
+
+          </td>
+
+
+          <td>
+
+            <div class="actions">
+
+              <button
+                class="action-btn present"
+                onclick="markPresent(${index})">
+                + Present
+              </button>
+
+              <button
+                class="action-btn absent"
+                onclick="markAbsent(${index})">
+                + Absent
+              </button>
+
+              <button
+                class="action-btn delete"
+                onclick="deleteStudent(${index})">
+                ×
+              </button>
+
+            </div>
+
+          </td>
+
+        `;
+
+
+        table.appendChild(row);
+
+      });
+
+
+      /* Update stats */
+
+      document.getElementById("totalStudents")
+        .textContent = students.length;
+
+
+      document.getElementById("presentToday")
+        .textContent = totalPresent;
+
+
+      const overall =
+        totalClasses === 0
+          ? 0
+          : (totalPresent / totalClasses) * 100;
+
+
+      document.getElementById("overallAttendance")
+        .textContent =
+        overall.toFixed(0) + "%";
+
+    }
+
+
+    /* =========================
+       SAVE
+    ========================= */
+
+    function saveData() {
+
+      localStorage.setItem(
+        "attendlyStudents",
+        JSON.stringify(students)
+      );
+
+    }
+
+
+    /* =========================
+       TOAST
+    ========================= */
+
+    let toastTimer;
+
+    function showToast(message) {
+
+      const toast =
+        document.getElementById("toast");
+
+      toast.textContent = message;
+
+      toast.classList.add("show");
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(() => {
+
+        toast.classList.remove("show");
+
+      }, 1800);
+
+    }
+
+
+    /* =========================
+       SECURITY
+    ========================= */
+
+    function escapeHTML(text) {
+
+      const div =
+        document.createElement("div");
+
+      div.textContent = text;
+
+      return div.innerHTML;
+
+    }
+
+
+    /* =========================
+       START APP
+    ========================= */
+
+    updateDate();
+    render();
+
+  </script>
+
+</body>
+</html>
